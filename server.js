@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const twilio = require('twilio');
+const { Resend } = require('resend');
 const axios = require('axios');
 
 const app = express();
@@ -89,17 +89,22 @@ async function processLead(leadId, adName) {
   await sendSMS(message);
 }
 
-// ── Send SMS via Twilio ────────────────────────────────────────────────────
+// ── Send email notification via Resend ────────────────────────────────────
 async function sendSMS(message) {
-  const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  const resend = new Resend(process.env.RESEND_API_KEY);
 
-  await client.messages.create({
-    body: message,
-    from: process.env.TWILIO_PHONE_NUMBER,
-    to:   process.env.MY_PHONE_NUMBER
+  const lines = message.split('\n');
+  const subject = lines[0];
+  const htmlBody = lines.map(l => `<p style="margin:4px 0">${l}</p>`).join('');
+
+  await resend.emails.send({
+    from:    'Lead Notifier <onboarding@resend.dev>',
+    to:      process.env.NOTIFY_EMAIL,
+    subject: subject,
+    html:    htmlBody
   });
 
-  console.log('SMS dispatched successfully');
+  console.log('Email notification sent');
 }
 
 // ── Start server ───────────────────────────────────────────────────────────
