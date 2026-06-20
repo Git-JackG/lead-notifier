@@ -6,6 +6,9 @@ const axios = require('axios');
 const app = express();
 app.use(express.json());
 
+// ── Health check ──────────────────────────────────────────────────────────
+app.get('/', (req, res) => res.sendStatus(200));
+
 // ── Meta Webhook Verification ──────────────────────────────────────────────
 // Meta sends a GET request when you first connect the webhook.
 // It must return the hub.challenge value to confirm ownership.
