@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const nodemailer = require('nodemailer');
+const twilio = require('twilio');
 const axios = require('axios');
 
 const app = express();
@@ -89,21 +89,14 @@ async function processLead(leadId, adName) {
   await sendSMS(message);
 }
 
-// ── Send SMS via carrier email gateway ────────────────────────────────────
+// ── Send SMS via Twilio ────────────────────────────────────────────────────
 async function sendSMS(message) {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.GMAIL_ADDRESS,
-      pass: process.env.GMAIL_APP_PASSWORD
-    }
-  });
+  const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-  await transporter.sendMail({
-    from:    process.env.GMAIL_ADDRESS,
-    to:      process.env.CARRIER_GATEWAY_EMAIL,
-    subject: '',   // Carriers ignore the subject — keep it empty for cleaner texts
-    text:    message
+  await client.messages.create({
+    body: message,
+    from: process.env.TWILIO_PHONE_NUMBER,
+    to:   process.env.MY_PHONE_NUMBER
   });
 
   console.log('SMS dispatched successfully');
